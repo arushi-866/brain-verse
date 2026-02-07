@@ -77,6 +77,9 @@ const SignUp = () => {
           localStorage.setItem('user', JSON.stringify(userData));
         }
         
+        // Dispatch custom event to notify Navbar of auth change
+        window.dispatchEvent(new Event('authChange'));
+        
         setShowSuccessAnimation(true);
         
         setTimeout(() => {
@@ -233,9 +236,7 @@ const SignUp = () => {
                   className="mt-8 space-y-4"
                 >
                   {[
-                    { icon: "ri-shield-check-line", text: "Advanced security protection" },
-                    { icon: "ri-dashboard-3-line", text: "Personalized dashboard experience" },
-                    { icon: "ri-group-line", text: "Connect with a global community" }
+                    
                   ].map((item, index) => (
                     <motion.div 
                       key={index}
@@ -409,20 +410,7 @@ const SignUp = () => {
                       />
                     </div>
                     
-                    {formData.password && (
-                      <div className="w-full h-1.5 bg-[#1a2133] rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ 
-                            width: `${passwordStrength * 25}%`,
-                            backgroundColor: passwordStrength <= 1 ? "#ef4444" : 
-                                          passwordStrength === 2 ? "#eab308" : 
-                                          passwordStrength === 3 ? "#3b82f6" : "#10b981"
-                          }}
-                          className="h-full"
-                        />
-                      </div>
-                    )}
+                  
                   </motion.div>
 
                   <motion.div 
@@ -474,12 +462,8 @@ const SignUp = () => {
                   transition={{ delay: 1.4 }}
                   className="relative my-8"
                 >
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#2a3654]"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-[#121927] text-slate-400">or sign up with</span>
-                  </div>
+                 
+                  
                 </motion.div>
 
                 <motion.div 
@@ -488,22 +472,7 @@ const SignUp = () => {
                   transition={{ delay: 1.5 }}
                   className="grid grid-cols-2 gap-4"
                 >
-                  <motion.button 
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex items-center justify-center gap-2 p-3 border border-[#2a3654] rounded-xl hover:border-[#4f7cff]/30 hover:bg-[#4f7cff]/10 transition duration-300"
-                  >
-                    <img className="w-5 h-5" src="https://static.cdnlogo.com/logos/g/35/google-icon.svg" alt="Google" />
-                    <span className="text-sm text-slate-300">Google</span>
-                  </motion.button>
-                  <motion.button 
-                    whileHover={{ scale: 1.03, y: -2 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex items-center justify-center gap-2 p-3 border border-[#2a3654] rounded-xl hover:border-[#4f7cff]/30 hover:bg-[#4f7cff]/10 transition duration-300"
-                  >
-                    <i className="ri-apple-fill text-xl text-slate-300"></i>
-                    <span className="text-sm text-slate-300">Apple</span>
-                  </motion.button>
+                  
                 </motion.div>
               </motion.div>
             </motion.div>

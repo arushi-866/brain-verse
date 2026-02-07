@@ -38,7 +38,9 @@ const ProfilePage = () => {
   const [hoverCard, setHoverCard] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const navigate = useNavigate();
   const [openFlashcardId, setOpenFlashcardId] = useState(null);
 
@@ -97,7 +99,7 @@ const ProfilePage = () => {
         const transformedData = {
           fullName: userData.fullName || "",
           email: userData.email || "",
-          title: userData.title || "AI Study Enthusiast",
+          // title: userData.title || "AI Study Enthusiast",
           stats: {
             summaries: userData.stats?.summaries || 0,
             mindMaps: userData.stats?.mindMaps || 0,
@@ -173,13 +175,24 @@ const ProfilePage = () => {
 
   const handleEditProfile = () => {
     setIsEditing(true);
+    setError(null);
+    setSaveSuccess(false);
   };
 
   const handleSaveProfile = async () => {
     try {
+      setSaving(true);
+      setError(null);
+      setSaveSuccess(false);
+
       const token = getAuthToken();
       if (!token) {
         throw new Error("No authentication token found");
+      }
+
+      // Validate name
+      if (!profileData.name || profileData.name.trim() === "") {
+        throw new Error("Name cannot be empty");
       }
 
       const response = await fetch(`${API_BASE_URL}/profile`, {
@@ -189,13 +202,14 @@ const ProfilePage = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          fullName: profileData.name,
-          title: profileData.title
+          fullName: profileData.name.trim(),
+          title: profileData.title || "AI Study Enthusiast"
         })
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
       const updatedUser = await response.json();
@@ -214,10 +228,18 @@ const ProfilePage = () => {
         title: updatedUser.title || profileData.title
       });
 
-      setIsEditing(false);
+      setSaveSuccess(true);
+      
+      // Close edit mode after a brief delay to show success
+      setTimeout(() => {
+        setIsEditing(false);
+        setSaveSuccess(false);
+      }, 1000);
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError(error.message);
+      setError(error.message || "Failed to save profile. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -364,6 +386,22 @@ const ProfilePage = () => {
             <div className="flex-1">
               {isEditing ? (
                 <div className="space-y-4">
+                  {error && (
+                    <div className="p-3 rounded-lg bg-red-900/30 text-red-200 text-sm border border-red-800/50">
+                      <div className="flex items-start space-x-2">
+                        <i className="ri-error-warning-line text-red-400 mt-0.5"></i>
+                        <span>{error}</span>
+                      </div>
+                    </div>
+                  )}
+                  {saveSuccess && (
+                    <div className="p-3 rounded-lg bg-green-900/30 text-green-200 text-sm border border-green-800/50">
+                      <div className="flex items-start space-x-2">
+                        <i className="ri-checkbox-circle-line text-green-400 mt-0.5"></i>
+                        <span>Profile updated successfully!</span>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-blue-300 mb-1">
                       Name
@@ -373,32 +411,37 @@ const ProfilePage = () => {
                       name="name"
                       value={profileData.name}
                       onChange={handleInputChange}
-                      className="bg-[#152a47] border border-blue-500/30 rounded-lg px-4 py-2 w-full text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-blue-300 mb-1">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={profileData.title}
-                      onChange={handleInputChange}
-                      className="bg-[#152a47] border border-blue-500/30 rounded-lg px-4 py-2 w-full text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={saving}
+                      className="bg-[#152a47] border border-blue-500/30 rounded-lg px-4 py-2 w-full text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="flex gap-2">
                     <Button
                       onClick={handleSaveProfile}
-                      className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900"
+                      disabled={saving}
+                      className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Save Changes
+                      {saving ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => setIsEditing(false)}
-                      className="border-blue-500/30 text-blue-300 hover:bg-blue-600/20"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setError(null);
+                        setSaveSuccess(false);
+                      }}
+                      disabled={saving}
+                      className="border-blue-500/30 text-blue-300 hover:bg-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </Button>
@@ -415,7 +458,7 @@ const ProfilePage = () => {
                     <Mail className="w-4 h-4" />
                     <span>{userData.email}</span>
                   </div>
-                  <p className="text-blue-400 mt-1">{userData.title}</p>
+                  {/* <p className="text-blue-400 mt-1">{userData.title}</p> */}
 
                   <div className="flex flex-wrap gap-2 mt-4">
                     <Button

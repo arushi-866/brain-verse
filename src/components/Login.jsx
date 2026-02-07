@@ -50,6 +50,9 @@ const Login = () => {
           localStorage.setItem('user', JSON.stringify(userData));
         }
         
+        // Dispatch custom event to notify Navbar of auth change
+        window.dispatchEvent(new Event('authChange'));
+        
         // Show brief success message
         setSuccess('Login successful!');
         
@@ -393,17 +396,7 @@ const Login = () => {
                     </div>
                   </motion.div>
 
-                  <motion.div 
-                    className="flex items-center justify-end"
-                    variants={itemVariants}
-                  >
-                    <Link 
-                      to="/forgot-password" 
-                      className="text-sm text-[#8892B0] hover:text-[#64FFDA] transition-colors duration-300"
-                    >
-                      Forgot your password?
-                    </Link>
-                  </motion.div>
+                 
 
                   <motion.div variants={itemVariants}>
                     <motion.button
@@ -421,41 +414,8 @@ const Login = () => {
                     </motion.button>
                   </motion.div>
 
-                  <motion.div 
-                    className="relative my-8"
-                    variants={itemVariants}
-                  >
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-[#64FFDA]/10"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-[#112240] text-[#8892B0]">or continue with</span>
-                    </div>
-                  </motion.div>
-
-                  <motion.div 
-                    className="grid grid-cols-2 gap-4"
-                    variants={itemVariants}
-                  >
-                    <motion.button
-                      type="button"
-                      className="flex items-center justify-center gap-2 p-3 border border-[#64FFDA]/10 rounded-lg hover:bg-[#64FFDA]/5 transition duration-300 group"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <img className="w-5 h-5 opacity-80 group-hover:opacity-100 transition duration-300" src="https://static.cdnlogo.com/logos/g/35/google-icon.svg" alt="Google" />
-                      <span className="text-sm text-[#8892B0] group-hover:text-white transition duration-300">Google</span>
-                    </motion.button>
-                    <motion.button
-                      type="button"
-                      className="flex items-center justify-center gap-2 p-3 border border-[#64FFDA]/10 rounded-lg hover:bg-[#64FFDA]/5 transition duration-300 group"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <i className="ri-apple-fill text-xl text-[#8892B0] group-hover:text-white transition duration-300"></i>
-                      <span className="text-sm text-[#8892B0] group-hover:text-white transition duration-300">Apple</span>
-                    </motion.button>
-                  </motion.div>
+                  
+                  
                 </form>
               </motion.div>
               

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bell, User, ChevronDown, LogOut, Menu, X } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 function Navbar() {
@@ -10,6 +10,7 @@ function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState(3);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,12 +20,40 @@ function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check authentication status when component mounts
+  // Check authentication status - runs on mount and when route changes
   useEffect(() => {
-    // Check for token in localStorage (matches what login/signup stores)
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+    };
+    
+    // Check immediately
+    checkAuth();
+    
+    // Listen for storage changes (cross-tab updates)
+    const handleStorageChange = (e) => {
+      if (e.key === 'token' || e.key === null) {
+        checkAuth();
+      }
+    };
+    
+    // Listen for custom auth change event (same-tab updates)
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authChange', handleAuthChange);
+    
+    // Also check on focus (in case of same-tab updates)
+    window.addEventListener('focus', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener('focus', checkAuth);
+    };
+  }, [location.pathname]); // Re-check when route changes
 
   const handleLogin = () => {
     // For testing purposes - simulate login
@@ -36,8 +65,11 @@ function Navbar() {
   const handleLogout = () => {
     // Clear authentication token
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setIsLoggedIn(false);
     setProfileOpen(false);
+    // Dispatch custom event to notify of auth change
+    window.dispatchEvent(new Event('authChange'));
     navigate('/login');
   };
 
@@ -77,21 +109,13 @@ function Navbar() {
           <div className="flex items-center space-x-4">
             {isLoggedIn ? (
               <>
-                {/* Profile Icon */}
+                {/* Profile Icon Only */}
                 <button 
                   onClick={navigateToProfile}
                   className="text-gray-300 hover:text-blue-400 p-2 rounded-full hover:bg-gray-800 transition-colors"
                   title="Profile"
                 >
                   <User className="h-5 w-5" />
-                </button>
-                
-                {/* Logout Button */}
-                <button 
-                  onClick={handleLogout} 
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium flex items-center"
-                >
-                  <LogOut className="h-4 w-4 mr-2" /> Logout
                 </button>
               </>
             ) : (
