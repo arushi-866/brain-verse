@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# env files (SECRETS)
+.env
+.env.*
+
+# build output
+dist/
+build/
+.vite/
+
+# logs
+*.log
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.vscode/
+.idea/
+
+# misc
+*.local
